@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
+using System.Linq;
 
 namespace ImageEncoding
 {
@@ -184,6 +185,43 @@ namespace ImageEncoding
             }
 
             return ToReturn;
+        }
+
+        public static string[] SortPathsByNumber(string[] paths)
+        {
+            List<string> ToPullFrom = new List<string>();
+            foreach (string path in paths)
+            {
+                ToPullFrom.Add(path);
+            }
+            
+
+            //arrange
+            List<string> ToReturn = new List<string>();
+            while (ToPullFrom.Count > 0)
+            {
+                string winner = ToPullFrom[0];
+                foreach (string path in ToPullFrom)
+                {
+                    int WinnerNumber = PathToNumber(winner);
+                    int ThisNumber = PathToNumber(path);
+                    if (ThisNumber < WinnerNumber)
+                    {
+                        winner = path;
+                    }
+                }
+                ToReturn.Add(winner);
+                ToPullFrom.Remove(winner);
+            }
+
+            return ToReturn.ToArray();
+        }
+        
+        private static int PathToNumber(string path)
+        {
+            string FileName = System.IO.Path.GetFileName(path);
+            FileName = FileName.ToLower().Replace(".png", "");
+            return Convert.ToInt32(FileName);
         }
 
     }

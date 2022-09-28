@@ -48,7 +48,7 @@ namespace ImageEncoding
             if (0 == 1)
             {
                 ImageEncoder ie = new ImageEncoder();
-                Stream te = System.IO.File.OpenRead(@"C:\Users\timh\Downloads\WIN_20220928_14_49_00_Pro.jpg");
+                Stream te = System.IO.File.OpenRead(@"C:\Users\timh\Downloads\spears.mp3");
                 MemoryStream[] imgs = ie.Encode(te);
                 for (int t = 0; t < imgs.Length; t++)
                 {
@@ -65,14 +65,19 @@ namespace ImageEncoding
             {
                 string[] paths = System.IO.Directory.GetFiles(@"C:\Users\timh\Downloads\drops");
                 List<Stream> ToPass = new List<Stream>();
-                foreach (string path in paths)
+                foreach (string path in ImageEncoder.SortPathsByNumber(paths))
                 {
                     Stream s = System.IO.File.OpenRead(path);
+                    Console.WriteLine(path);
                     ToPass.Add(s);
                 }
 
                 MemoryStream ms = ImageEncoder.Decode(ToPass.ToArray());
-                Console.WriteLine(ms.Length.ToString());
+                ms.Seek(0, SeekOrigin.Begin);
+                
+                Stream pwt = System.IO.File.OpenWrite(@"C:\Users\timh\Downloads\spearsD.mp3");
+                ms.CopyTo(pwt);
+                pwt.Close();
             }
             
         }
