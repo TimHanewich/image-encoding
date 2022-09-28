@@ -11,6 +11,11 @@ namespace ImageEncoding
 
         public int MaxDimension {get; set;} //max width/height per image
 
+        //A-codes
+        private const int a_code_dead = 0; //0 = dead cell. Just ignore
+        private const int a_code_1 = 1; //1 = partial transmission. Only the first byte, R, counts.
+        private const int a_code_2 = 1; //2 = partial transmission. Only the first two bytes, R and G count.
+        private const int a_code_3 = 1; //3 = data transcribed normally. All bytes count (R, G, and B)
 
         public ImageEncoder()
         {
@@ -62,26 +67,22 @@ namespace ImageEncoding
                 }
 
                 //Determine the "A-code". The "A" value of the ARGB value indicates something about the data transcribed there.
-                //0 = dead cell. Just ignore
-                //1 = partial transmission. Only the first byte, R, counts.
-                //2 = partial transmission. Only the first two bytes, R and G count.
-                //3 = data transcribed normally. All bytes count (R, G, and B)
                 int A_code = 3; 
                 if (ThisPixel.Count == 0)
                 {
-                    A_code = 0;
+                    A_code = a_code_dead;
                 }
                 else if (ThisPixel.Count == 1)
                 {
-                    A_code = 1;
+                    A_code = a_code_1;
                 }
                 else if (ThisPixel.Count == 2)
                 {
-                    A_code = 2;
+                    A_code = a_code_2;
                 }
                 else if (ThisPixel.Count == 3)
                 {
-                    A_code = 3;
+                    A_code = a_code_3;
                 }
 
                 //If it does not have 4 bytes, make it up, ONLY if there is data there. If there is NOT data there, break altogether
@@ -144,6 +145,44 @@ namespace ImageEncoding
 
 
             return ToReturn.ToArray();
+        }
+
+        public MemoryStream Decode(Stream[] inputs)
+        {
+            MemoryStream ToReturn = new MemoryStream();
+            
+            foreach (Stream s in inputs)
+            {
+                Bitmap bm = new Bitmap(s);
+                for (int y = 0; y < bm.Height; y++)
+                {
+                    for (int x = 0; x < bm.Width; x++)
+                    {
+                        Color pixel = bm.GetPixel(x, y);
+                        int A = Convert.ToInt32(pixel.A);
+                        if (A != a_code_dead)
+                        {
+                            if (A == a_code_1)
+                            {
+                                ToReturn.WriteByte(pixel.R);
+                            }
+                            else if (A == a_code_2)
+                            {
+                                ToReturn.WriteByte(pixel.R);
+                                ToReturn.WriteByte(pixel.G);
+                            }
+                            else if (A == a_code_3)
+                            {
+                                ToReturn.WriteByte(pixel.R);
+                                ToReturn.WriteByte(pixel.G);
+                                ToReturn.WriteByte(pixel.B);
+                            }
+                        }
+                    }
+                } 
+            }
+
+            return ToReturn;
         }
 
     }
