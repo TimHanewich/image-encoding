@@ -14,8 +14,8 @@ namespace ImageEncoding
         //A-codes
         private const int a_code_dead = 0; //0 = dead cell. Just ignore
         private const int a_code_1 = 1; //1 = partial transmission. Only the first byte, R, counts.
-        private const int a_code_2 = 1; //2 = partial transmission. Only the first two bytes, R and G count.
-        private const int a_code_3 = 1; //3 = data transcribed normally. All bytes count (R, G, and B)
+        private const int a_code_2 = 2; //2 = partial transmission. Only the first two bytes, R and G count.
+        private const int a_code_3 = 3; //3 = data transcribed normally. All bytes count (R, G, and B)
 
         public ImageEncoder()
         {
@@ -147,12 +147,13 @@ namespace ImageEncoding
             return ToReturn.ToArray();
         }
 
-        public MemoryStream Decode(Stream[] inputs)
+        public static MemoryStream Decode(Stream[] inputs)
         {
             MemoryStream ToReturn = new MemoryStream();
             
             foreach (Stream s in inputs)
             {
+                
                 Bitmap bm = new Bitmap(s);
                 for (int y = 0; y < bm.Height; y++)
                 {
