@@ -23,7 +23,7 @@ namespace ImageEncoding
 
             //Convert the # of pixels needed
             int byte_count = Convert.ToInt32(input.Length);
-            int pixels_needed = Convert.ToInt32(Math.Ceiling(Convert.ToSingle(byte_count / 4)));
+            int pixels_needed = Convert.ToInt32(Math.Ceiling(Convert.ToSingle(byte_count / 3)));
             
             //Count the # of images that we need
             int pixels_per_image = MaxDimension * MaxDimension;
@@ -44,11 +44,13 @@ namespace ImageEncoding
             while (true)
             {
 
+                
+                
                 bool terminate = false;
 
-                //Collect 4 bytes
+                //Collect 3 bytes
                 List<int> ThisPixel = new List<int>();
-                while (ThisPixel.Count < 4)
+                while (ThisPixel.Count < 3)
                 {
                     int nb = input.ReadByte();
                     if (nb == -1)
@@ -59,10 +61,33 @@ namespace ImageEncoding
                     ThisPixel.Add(nb);
                 }
 
+                //Determine the "A-code". The "A" value of the ARGB value indicates something about the data transcribed there.
+                //0 = dead cell. Just ignore
+                //1 = partial transmission. Only the first byte, R, counts.
+                //2 = partial transmission. Only the first two bytes, R and G count.
+                //3 = data transcribed normally. All bytes count (R, G, and B)
+                int A_code = 3; 
+                if (ThisPixel.Count == 0)
+                {
+                    A_code = 0;
+                }
+                else if (ThisPixel.Count == 1)
+                {
+                    A_code = 1;
+                }
+                else if (ThisPixel.Count == 2)
+                {
+                    A_code = 2;
+                }
+                else if (ThisPixel.Count == 3)
+                {
+                    A_code = 3;
+                }
+
                 //If it does not have 4 bytes, make it up, ONLY if there is data there. If there is NOT data there, break altogether
                 if (ThisPixel.Count > 0)
                 {
-                    while (ThisPixel.Count < 4)
+                    while (ThisPixel.Count < 3)
                     {
                         ThisPixel.Add(0);
                     }
@@ -71,7 +96,7 @@ namespace ImageEncoding
                 //Set the pixel, if there is data
                 if (ThisPixel.Count > 0)
                 {
-                    WorkingOn.SetPixel(OnX, OnY, Color.FromArgb(ThisPixel[0], ThisPixel[1], ThisPixel[2], ThisPixel[3]));
+                    WorkingOn.SetPixel(OnX, OnY, Color.FromArgb(A_code, ThisPixel[0], ThisPixel[1], ThisPixel[2]));
                 }
 
                 //Increment the OnX, OnY. or set an entire new image
