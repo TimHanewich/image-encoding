@@ -28,7 +28,7 @@ namespace ImageEncoding
         {
 
             //Convert the # of pixels needed
-            int byte_count = Convert.ToInt32(input.Length);
+            long byte_count = input.Length;
             int pixels_needed = Convert.ToInt32(Math.Ceiling(Convert.ToSingle(byte_count / 3)));
             
             //Count the # of images that we need
